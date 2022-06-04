@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Dreamacro/clash/common/cache"
+	"math/rand"
 	"net"
 	"time"
 
@@ -114,6 +115,21 @@ func (lb *LoadBalance) SupportUDP() bool {
 	return !lb.disableUDP
 }
 
+func strategyRandom() strategyFn {
+	lastPick := 0
+	return func(proxies []C.Proxy, metadata *C.Metadata) C.Proxy {
+		length := len(proxies)
+		idx := rand.Intn(length)
+		proxy := proxies[idx]
+		if proxy.Alive() {
+			lastPick = idx
+			return proxy
+		}
+
+		return proxies[lastPick]
+	}
+}
+
 func strategyRoundRobin() strategyFn {
 	idx := 0
 	return func(proxies []C.Proxy, metadata *C.Metadata) C.Proxy {
@@ -216,6 +232,8 @@ func NewLoadBalance(option *GroupCommonOption, providers []provider.ProxyProvide
 		strategyFn = strategyRoundRobin()
 	case "sticky-sessions":
 		strategyFn = strategyStickySessions()
+	case "random":
+		strategyFn = strategyRandom()
 	default:
 		return nil, fmt.Errorf("%w: %s", errStrategy, strategy)
 	}
