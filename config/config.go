@@ -136,7 +136,9 @@ type Sniffer struct {
 }
 
 // Experimental config
-type Experimental struct{}
+type Experimental struct {
+	Fingerprints []string `yaml:"fingerprints"`
+}
 
 // Config is clash config manager
 type Config struct {
@@ -800,8 +802,10 @@ func parseDNS(rawCfg *RawConfig, hosts *trie.DomainTrie[netip.Addr], rules []C.R
 		host, _, err := net.SplitHostPort(ns.Addr)
 		if err != nil || net.ParseIP(host) == nil {
 			u, err := url.Parse(ns.Addr)
-			if err != nil || net.ParseIP(u.Host) == nil {
-				return nil, errors.New("default nameserver should be pure IP")
+			if err == nil && net.ParseIP(u.Host) == nil {
+				if ip, _, err := net.SplitHostPort(u.Host); err != nil || net.ParseIP(ip) == nil {
+					return nil, errors.New("default nameserver should be pure IP")
+				}
 			}
 		}
 	}

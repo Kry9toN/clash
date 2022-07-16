@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"github.com/Dreamacro/clash/component/dialer"
 	"github.com/Dreamacro/clash/component/resolver"
+	tls2 "github.com/Dreamacro/clash/component/tls"
 	"github.com/lucas-clemente/quic-go"
 	"github.com/lucas-clemente/quic-go/http3"
 	D "github.com/miekg/dns"
@@ -119,6 +120,7 @@ func newDohTransport(r *Resolver, preferH3 bool, proxyAdapter string) *dohTransp
 					return dialContextExtra(ctx, proxyAdapter, "tcp", ip, port)
 				}
 			},
+			TLSClientConfig: tls2.GetDefaultTLSConfig(),
 		},
 		preferH3: preferH3,
 	}
@@ -156,6 +158,7 @@ func newDohTransport(r *Resolver, preferH3 bool, proxyAdapter string) *dohTransp
 					}
 				}
 			},
+			TLSClientConfig: tls2.GetDefaultTLSConfig(),
 		}
 	}
 
