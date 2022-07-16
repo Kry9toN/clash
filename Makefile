@@ -2,13 +2,13 @@ NAME=Clash.Meta
 BINDIR=bin
 BRANCH=$(shell git branch --show-current)
 ifeq ($(BRANCH),Alpha)
-VERSION=krypton-clash-alpha@$(shell git rev-parse --short HEAD)
+VERSION=KryPtoN alpha@$(shell git rev-parse --short HEAD)
 else ifeq ($(BRANCH),Beta)
-VERSION=krypton-clash-beta@$(shell git rev-parse --short HEAD)
+VERSION=KryPtoN beta@$(shell git rev-parse --short HEAD)
 else ifeq ($(BRANCH),)
-VERSION=krypton-clash$(shell git describe --tags)
+VERSION=KryPtoN$(shell git describe --tags)
 else
-VERSION=krypton-clash$(shell git rev-parse --short HEAD)
+VERSION=KryPtoN$(shell git rev-parse --short HEAD)
 endif
 
 BUILDTIME=$(shell date -u)
