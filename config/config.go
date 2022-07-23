@@ -67,6 +67,7 @@ type Inbound struct {
 	Authentication []string `json:"authentication"`
 	AllowLan       bool     `json:"allow-lan"`
 	BindAddress    string   `json:"bind-address"`
+	InboundTfo     bool     `json:"inbound-tfo"`
 }
 
 // Controller config
@@ -197,6 +198,7 @@ type RawConfig struct {
 	RedirPort          int          `yaml:"redir-port"`
 	TProxyPort         int          `yaml:"tproxy-port"`
 	MixedPort          int          `yaml:"mixed-port"`
+	InboundTfo         bool         `yaml:"inbound-tfo"`
 	Authentication     []string     `yaml:"authentication"`
 	AllowLan           bool         `yaml:"allow-lan"`
 	BindAddress        string       `yaml:"bind-address"`
@@ -408,6 +410,7 @@ func parseGeneral(cfg *RawConfig) (*General, error) {
 			MixedPort:   cfg.MixedPort,
 			AllowLan:    cfg.AllowLan,
 			BindAddress: cfg.BindAddress,
+			InboundTfo:  cfg.InboundTfo,
 		},
 		Controller: Controller{
 			ExternalController: cfg.ExternalController,
@@ -649,7 +652,8 @@ func parseNameServer(servers []string) ([]dns.NameServer, error) {
 			return nil, fmt.Errorf("DNS NameServer[%d] format error: %s", idx, err.Error())
 		}
 
-		var addr, dnsNetType string
+		var addr, dnsNetType, proxyAdapter string
+		params := map[string]string{}
 		switch u.Scheme {
 		case "udp":
 			addr, err = hostWithDefaultPort(u.Host, "53")
@@ -664,6 +668,20 @@ func parseNameServer(servers []string) ([]dns.NameServer, error) {
 			clearURL := url.URL{Scheme: "https", Host: u.Host, Path: u.Path}
 			addr = clearURL.String()
 			dnsNetType = "https" // DNS over HTTPS
+			if len(u.Fragment) != 0 {
+				for _, s := range strings.Split(u.Fragment, "&") {
+					arr := strings.Split(s, "=")
+					if len(arr) == 0 {
+						continue
+					} else if len(arr) == 1 {
+						proxyAdapter = arr[0]
+					} else if len(arr) == 2 {
+						params[arr[0]] = arr[1]
+					} else {
+						params[arr[0]] = strings.Join(arr[1:], "=")
+					}
+				}
+			}
 		case "dhcp":
 			addr = u.Host
 			dnsNetType = "dhcp" // UDP from DHCP
@@ -683,8 +701,9 @@ func parseNameServer(servers []string) ([]dns.NameServer, error) {
 			dns.NameServer{
 				Net:          dnsNetType,
 				Addr:         addr,
-				ProxyAdapter: u.Fragment,
+				ProxyAdapter: proxyAdapter,
 				Interface:    dialer.DefaultInterface,
+				Params:       params,
 			},
 		)
 	}

@@ -172,7 +172,6 @@ func updateDNS(c *config.DNS, generalIPv6 bool) {
 		Default:     c.DefaultNameserver,
 		Policy:      c.NameServerPolicy,
 		ProxyServer: c.ProxyServerNameserver,
-		PreferH3:    c.PreferH3,
 	}
 
 	r := dns.NewResolver(cfg)
@@ -288,7 +287,6 @@ func updateSniffer(sniffer *config.Sniffer) {
 }
 
 func updateGeneral(general *config.General, force bool) {
-	log.SetLevel(general.LogLevel)
 	tunnel.SetMode(general.Mode)
 	tunnel.SetAlwaysFindProcess(general.EnableProcess)
 	dialer.DisableIPv6 = !general.IPv6
@@ -329,6 +327,8 @@ func updateGeneral(general *config.General, force bool) {
 
 	bindAddress := general.BindAddress
 	P.SetBindAddress(bindAddress)
+
+	P.SetInboundTfo(general.InboundTfo)
 
 	tcpIn := tunnel.TCPIn()
 	udpIn := tunnel.UDPIn()
