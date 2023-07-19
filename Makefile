@@ -1,15 +1,6 @@
 NAME=clash.meta
 BINDIR=bin
-BRANCH=$(shell git branch --show-current)
-ifeq ($(BRANCH),Alpha)
-VERSION=alpha-$(shell git rev-parse --short HEAD)
-else ifeq ($(BRANCH),Beta)
-VERSION=beta-$(shell git rev-parse --short HEAD)
-else ifeq ($(BRANCH),)
-VERSION=$(shell git describe --tags)
-else
-VERSION=$(shell git rev-parse --short HEAD)
-endif
+VERSION=KryPtoNClash-$(shell git rev-parse --short HEAD)
 
 BUILDTIME=$(shell date -u)
 GOBUILD=CGO_ENABLED=0 go build -tags with_gvisor -trimpath -ldflags '-X "github.com/Dreamacro/clash/constant.Version=$(VERSION)" \
